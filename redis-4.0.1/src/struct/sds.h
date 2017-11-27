@@ -65,7 +65,10 @@ struct __attribute__ ((__packed__)) sdshdr32 {
     unsigned char flags; /* 3 lsb of type, 5 unused bits */
     char buf[];
 };
+
+/*__attribute__ ((__packed__))表示取消系统自动对齐，结构体大小为各字段之和*/
 struct __attribute__ ((__packed__)) sdshdr64 {
+    /*uint64_t是stdint标准库中定长的数据类型，不随平台变化*/
     uint64_t len; /* used */
     uint64_t alloc; /* excluding the header and null terminator */
     unsigned char flags; /* 3 lsb of type, 5 unused bits */
