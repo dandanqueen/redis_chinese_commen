@@ -33,6 +33,7 @@
 #ifndef __SDS_H
 #define __SDS_H
 
+/*成倍增长的限值，小于此值前空间不够时成被扩充空间*/
 #define SDS_MAX_PREALLOC (1024*1024)
 
 #include <sys/types.h>
