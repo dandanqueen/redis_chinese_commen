@@ -1,5 +1,6 @@
 /* The ziplist is a specially encoded dually linked list that is designed
  * to be very memory efficient. It stores both strings and integer values,
+
  * where integers are encoded as actual integers instead of a series of
  * characters. It allows push and pop operations on either side of the list
  * in O(1) time. However, because every operation requires a reallocation of
@@ -199,7 +200,9 @@
                                representing the previous entry len. */
 
 /* Different encoding/length possibilities */
+/*字符串掩码11000000*/
 #define ZIP_STR_MASK 0xc0
+/*整数掩码  00110000*/
 #define ZIP_INT_MASK 0x30
 #define ZIP_STR_06B (0 << 6)
 #define ZIP_STR_14B (1 << 6)
@@ -217,42 +220,53 @@
 #define ZIP_INT_IMM_MIN 0xf1    /* 11110001 */
 #define ZIP_INT_IMM_MAX 0xfd    /* 11111101 */
 
+/*int24类型最大值*/
 #define INT24_MAX 0x7fffff
+/*int24类型最小值*/
 #define INT24_MIN (-INT24_MAX - 1)
 
 /* Macro to determine if the entry is a string. String entries never start
  * with "11" as most significant bits of the first byte. */
+/*判断entry是否是字符串*/
 #define ZIP_IS_STR(enc) (((enc) & ZIP_STR_MASK) < ZIP_STR_MASK)
 
 /* Utility macros.*/
-
+/*工具宏*/
 /* Return total bytes a ziplist is composed of. */
+/*取得ziplist总字节数*/
 #define ZIPLIST_BYTES(zl)       (*((uint32_t*)(zl)))
 
 /* Return the offset of the last item inside the ziplist. */
+/*取得ziplist中最后一项偏移量*/
 #define ZIPLIST_TAIL_OFFSET(zl) (*((uint32_t*)((zl)+sizeof(uint32_t))))
 
 /* Return the length of a ziplist, or UINT16_MAX if the length cannot be
  * determined without scanning the whole ziplist. */
+/*取得ziplist中entry个数*/
 #define ZIPLIST_LENGTH(zl)      (*((uint16_t*)((zl)+sizeof(uint32_t)*2)))
 
 /* The size of a ziplist header: two 32 bit integers for the total
  * bytes count and last item offset. One 16 bit integer for the number
  * of items field. */
+/*ziplist头部大小*/
 #define ZIPLIST_HEADER_SIZE     (sizeof(uint32_t)*2+sizeof(uint16_t))
 
 /* Size of the "end of ziplist" entry. Just one byte. */
+/*ziplist尾部结束符大小*/
 #define ZIPLIST_END_SIZE        (sizeof(uint8_t))
 
 /* Return the pointer to the first entry of a ziplist. */
+/*取得ziplist第一个entry的地址指针*/
 #define ZIPLIST_ENTRY_HEAD(zl)  ((zl)+ZIPLIST_HEADER_SIZE)
 
 /* Return the pointer to the last entry of a ziplist, using the
  * last entry offset inside the ziplist header. */
+/*取得ziplist中最后一个entry地址*/
 #define ZIPLIST_ENTRY_TAIL(zl)  ((zl)+intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)))
 
 /* Return the pointer to the last byte of a ziplist, which is, the
  * end of ziplist FF entry. */
+/*取得ziplist结束符地址*/
 #define ZIPLIST_ENTRY_END(zl)   ((zl)+intrev32ifbe(ZIPLIST_BYTES(zl))-1)
 
 /* Increment the number of items field in the ziplist header. Note that this
@@ -260,7 +274,9 @@
  * always pushed one at a time. When UINT16_MAX is reached we want the count
  * to stay there to signal that a full scan is needed to get the number of
  * items inside the ziplist. */
+/*增加ziplist长度字段值*/
 #define ZIPLIST_INCR_LENGTH(zl,incr) { \
+    /*ziplist最大长度为UINT16_MAX*/
     if (ZIPLIST_LENGTH(zl) < UINT16_MAX) \
         ZIPLIST_LENGTH(zl) = intrev16ifbe(intrev16ifbe(ZIPLIST_LENGTH(zl))+incr); \
 }

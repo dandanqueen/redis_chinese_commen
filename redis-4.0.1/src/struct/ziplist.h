@@ -34,20 +34,35 @@
 #define ZIPLIST_HEAD 0
 #define ZIPLIST_TAIL 1
 
+/*创建新的字符串压缩链表*/
 unsigned char *ziplistNew(void);
+/*合并两条压缩链表为一条压缩链表*/
 unsigned char *ziplistMerge(unsigned char **first, unsigned char **second);
+/*向压缩链表指定位置插入指定长度的字符串*/
 unsigned char *ziplistPush(unsigned char *zl, unsigned char *s, unsigned int slen, int where);
+/*通过下标获取压缩链表中指定节点*/
 unsigned char *ziplistIndex(unsigned char *zl, int index);
+/*获取压缩链表中指定节点的下一个节点*/
 unsigned char *ziplistNext(unsigned char *zl, unsigned char *p);
+/*获取压缩链表中指定节点的前一个节点*/
 unsigned char *ziplistPrev(unsigned char *zl, unsigned char *p);
+/*在压缩链表中查找*/
 unsigned int ziplistGet(unsigned char *p, unsigned char **sval, unsigned int *slen, long long *lval);
+/*在压缩链表中指定位置插入字符串*/
 unsigned char *ziplistInsert(unsigned char *zl, unsigned char *p, unsigned char *s, unsigned int slen);
+/*删除压缩链表中指定字符串*/
 unsigned char *ziplistDelete(unsigned char *zl, unsigned char **p);
+/*删除压缩链表中指定范围的节点*/
 unsigned char *ziplistDeleteRange(unsigned char *zl, int index, unsigned int num);
+/*压缩链表相比较*/
 unsigned int ziplistCompare(unsigned char *p, unsigned char *s, unsigned int slen);
+/*压缩链表中查找*/
 unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int vlen, unsigned int skip);
+/*字符串压缩链表长度*/
 unsigned int ziplistLen(unsigned char *zl);
+/*字符串压缩链表长度*/
 size_t ziplistBlobLen(unsigned char *zl);
+/**/
 void ziplistRepr(unsigned char *zl);
 
 #ifdef REDIS_TEST
