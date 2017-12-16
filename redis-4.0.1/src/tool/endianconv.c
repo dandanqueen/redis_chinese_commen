@@ -46,9 +46,10 @@
 
 /* Toggle the 16 bit unsigned integer pointed by *p from little endian to
  * big endian */
+/*16位字节反转*/
 void memrev16(void *p) {
     unsigned char *x = p, t;
-
+    /*交换第1个字节和第2个字节*/
     t = x[0];
     x[0] = x[1];
     x[1] = t;
