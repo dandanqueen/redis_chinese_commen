@@ -191,6 +191,7 @@
 #include "endianconv.h"
 #include "redisassert.h"
 
+/*ziplist结束符ZIP_END*/
 #define ZIP_END 255         /* Special "end of ziplist" entry. */
 #define ZIP_BIG_PREVLEN 254 /* Max number of bytes of the previous entry, for
                                the "prevlen" field prefixing each entry, to be
@@ -301,11 +302,11 @@
 /*ziplist entry信息汇总结构体*/
 /*每个entry都有头部信息，头部信息中包括编码和entry内容字节长度*/
 typedef struct zlentry {
-    /*上一次entry头部所占字节数*/
+    /*用于编码prevrawlen所用字节数*/
     unsigned int prevrawlensize; /* Bytes used to encode the previos entry len*/
-    /*上一次entry实际长度*/
+    /*前一个entry实际长度*/
     unsigned int prevrawlen;     /* Previous entry len. */
-    /*entry头部所占字节数*/
+    /*用于编码entry type和len信息所占字节数*/
     unsigned int lensize;        /* Bytes used to encode this entry type/len.
                                     For example strings have a 1, 2 or 5 bytes
                                     header. Integers always use a single byte.*/
@@ -315,14 +316,14 @@ typedef struct zlentry {
                                     while for integers it is 1, 2, 3, 4, 8 or
                                     0 (for 4 bit immediate) depending on the
                                     number range. */
-    /*entry头部所占字节数*/
+    /*entry头部所占字节数=编码prevrawlen字节数+编码type和len字节数*/
     unsigned int headersize;     /* prevrawlensize + lensize. */
     /*entry编码类型*/
     unsigned char encoding;      /* Set to ZIP_STR_* or ZIP_INT_* depending on
                                     the entry encoding. However for 4 bits
                                     immediate integers this can assume a range
                                     of values and must be range-checked. */
-    /*entry首地址*/
+    /*entry地址*/
     unsigned char *p;            /* Pointer to the very start of the entry, that
                                     is, this points to prev-entry-len field. */
 } zlentry;
@@ -662,6 +663,7 @@ int64_t zipLoadInteger(unsigned char *p, unsigned char encoding) {
 }
 
 /* Return a struct with all information about an entry. */
+/*从entry解析出entry元信息*/
 void zipEntry(unsigned char *p, zlentry *e) {
 
     ZIP_DECODE_PREVLEN(p, e->prevrawlensize, e->prevrawlen);
@@ -1127,13 +1129,16 @@ unsigned char *ziplistPrev(unsigned char *zl, unsigned char *p) {
  * on the encoding of the entry. '*sstr' is always set to NULL to be able
  * to find out whether the string pointer or the integer value was set.
  * Return 0 if 'p' points to the end of the ziplist, 1 otherwise. */
+/*取出entry值，并储存到相应遍历中*/
 unsigned int ziplistGet(unsigned char *p, unsigned char **sstr, unsigned int *slen, long long *sval) {
     zlentry entry;
+    /*entr为空或为结束符，直接返回*/
     if (p == NULL || p[0] == ZIP_END) return 0;
     if (sstr) *sstr = NULL;
-
+    /*解析出entry信息*/
     zipEntry(p, &entry);
     if (ZIP_IS_STR(entry.encoding)) {
+
         if (sstr) {
             *slen = entry.len;
             *sstr = p+entry.headersize;
